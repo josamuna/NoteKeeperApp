@@ -1,0 +1,47 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/pref_section_general">
+
+        <EditTextPreference
+            android:defaultValue="@string/pref_default_name"
+            android:icon="@drawable/ic_info_black_24dp"
+            android:key="user_display_name"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/pref_display_name" />
+
+        <EditTextPreference
+            android:defaultValue="@string/pref_default_email_address"
+            android:icon="@drawable/ic_email_black_24dp"
+            android:key="user_email_address"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/pref_email_address" />
+        <ListPreference
+            android:defaultValue="@string/pref_default_favorite_social"
+            android:entries="@array/pref_entries_favorite_social"
+            android:entryValues="@array/pref_values_favorite_social"
+            android:icon="@drawable/ic_people_black_24dp"
+            android:key="user_favorite_social"
+            android:title="@string/pref_favorite_social" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/sync_header">
+
+        <SwitchPreferenceCompat
+            app:icon="@drawable/ic_sync_black_24dp"
+            app:key="sync"
+            app:title="@string/sync_title" />
+
+        <SwitchPreferenceCompat
+            app:dependency="sync"
+            app:key="attachment"
+            app:summaryOff="@string/attachment_summary_off"
+            app:summaryOn="@string/attachment_summary_on"
+            app:title="@string/attachment_title" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
