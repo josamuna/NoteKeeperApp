@@ -2,8 +2,11 @@
 
 # This project is made from the scratch and covert three Modules 
 
-[1] Understanding Android Application Basics
-[2] Working with Android Tools and Testing
-[3] Enhancing the Android Application Experience
+[x] Understanding Android Application Basics
+[x] Working with Android Tools and Testing
+[x] Enhancing the Android Application Experience
+[x] Managing Android App Data with SQLite
+[x] Exposing Data and Information Outside Your Android App
+[x] Broadening Android App Appeal and Reach
 
 This project is private as well because it can be open durant Andela Trainning
