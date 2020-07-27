@@ -1,7 +1,12 @@
 package com.josamuna.notekeeper;
 
+import android.annotation.SuppressLint;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.Menu;
@@ -23,11 +28,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
+import com.josamuna.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,
+        LoaderManager.LoaderCallbacks<Cursor> {
 
     private NoteRecyclerAdapter mNoteRecyclerAdapter;
     private RecyclerView mRecyclerItems;
@@ -35,6 +42,7 @@ public class MainActivity extends AppCompatActivity
     private CourseRecyclerAdapter mCourseRecyclerAdapter;
     private GridLayoutManager mGridLayoutManager;
     private NoteKeeperOpenHelper mDbOpenHelper;
+    private int LOADER_NOTES = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,9 +82,25 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        mNoteRecyclerAdapter.notifyDataSetChanged();
+//        mNoteRecyclerAdapter.notifyDataSetChanged();
+//        loadNotes();
+//        getSupportLoaderManager().restartLoader(LOADER_NOTES, null, this);
+        getLoaderManager().restartLoader(LOADER_NOTES, null, this);
 
         updateNavHeader();
+    }
+
+    private void loadNotes() {
+        SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
+        final String[] noteColumns = {
+                NoteInfoEntry.COLUMN_NOTE_TITLE,
+                NoteInfoEntry.COLUMN_COURSE_ID,
+                NoteInfoEntry._ID};
+        final String noteOrderBy = NoteInfoEntry.COLUMN_COURSE_ID + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
+        final Cursor noteCursor = db.query(NoteInfoEntry.TABLE_NAME, noteColumns,
+                null, null, null, null, noteOrderBy);
+        // Associate Adapter (RecyclerAdapter) to the Cursor
+        mNoteRecyclerAdapter.changeCursor(noteCursor);
     }
 
     private void updateNavHeader() {
@@ -94,16 +118,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initializeDisplayContent() {
+        // Read Data from database
+        DataManager.loadFromDatabase(mDbOpenHelper);
+
         mRecyclerItems = findViewById(R.id.list_items);
         mNoteLayoutManager = new LinearLayoutManager(this);
         mGridLayoutManager = new GridLayoutManager(this, getResources().getInteger(R.integer.course_grid_span));
 
-        List<NoteInfo> noteInfos = DataManager.getInstance().getNotes();
-        mNoteRecyclerAdapter = new NoteRecyclerAdapter(this, noteInfos);
+        mNoteRecyclerAdapter = new NoteRecyclerAdapter(this, null);
 
-        List<CourseInfo> courseInfos = DataManager.getInstance().getCourses();
-        mCourseRecyclerAdapter = new CourseRecyclerAdapter(this, courseInfos);
-        displayNotes();
+        List<CourseInfo> courses = DataManager.getInstance().getCourses();
+        mCourseRecyclerAdapter = new CourseRecyclerAdapter(this, courses);
+        displayNote();
     }
 
     private void displayCourse() {
@@ -112,12 +138,9 @@ public class MainActivity extends AppCompatActivity
         selectNavigationMenuItem(R.id.nav_courses);
     }
 
-    private void displayNotes() {
+    private void displayNote() {
         mRecyclerItems.setLayoutManager(mNoteLayoutManager);
         mRecyclerItems.setAdapter(mNoteRecyclerAdapter);
-
-        // Connect to the database for reading its content.
-        SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
         selectNavigationMenuItem(R.id.nav_notes);
     }
 
@@ -161,7 +184,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_notes) {
-            displayNotes();
+            displayNote();
         } else if (id == R.id.nav_courses) {
             displayCourse();
         } else if (id == R.id.nav_share) {
@@ -186,5 +209,42 @@ public class MainActivity extends AppCompatActivity
     private void handleSelection() {
         View view = findViewById(R.id.list_items);
         Snackbar.make(view, R.string.nav_send_message, Snackbar.LENGTH_LONG).show();
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        CursorLoader loader = null;
+        if(id == LOADER_NOTES) {
+            loader = new CursorLoader(this) {
+                @Override
+                public Cursor loadInBackground() {
+                    SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
+                    final String[] noteColumns = {
+                            NoteInfoEntry.COLUMN_NOTE_TITLE,
+                            NoteInfoEntry.COLUMN_COURSE_ID,
+                            NoteInfoEntry._ID};
+                    final String noteOrderBy = NoteInfoEntry.COLUMN_COURSE_ID +
+                            "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
+                    return db.query(NoteInfoEntry.TABLE_NAME, noteColumns,
+                            null, null, null, null, noteOrderBy);
+                }
+            };
+        }
+        return loader;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        if(loader.getId() == LOADER_NOTES)  {
+            mNoteRecyclerAdapter.changeCursor(data);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        if(loader.getId() == LOADER_NOTES)  {
+            mNoteRecyclerAdapter.changeCursor(null);
+        }
     }
 }
