@@ -3,6 +3,9 @@ package com.josamuna.notekeeper;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.josamuna.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
+import com.josamuna.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
+
 /**
  * Created by Jim.
  */
@@ -37,19 +40,19 @@ public class DatabaseDataWorker {
 
     private void insertCourse(String courseId, String title) {
         ContentValues values = new ContentValues();
-        values.put(NoteKeeperDatabaseContract.CourseInfoEntry.COLUMN_COURSE_ID, courseId);
-        values.put(NoteKeeperDatabaseContract.CourseInfoEntry.COLUMN_COURSE_TITLE, title);
+        values.put(CourseInfoEntry.COLUMN_COURSE_ID, courseId);
+        values.put(CourseInfoEntry.COLUMN_COURSE_TITLE, title);
 
-        long newRowId = mDb.insert(NoteKeeperDatabaseContract.CourseInfoEntry.TABLE_NAME, null, values);
+        long newRowId = mDb.insert(CourseInfoEntry.TABLE_NAME, null, values);
     }
 
      private void insertNote(String courseId, String title, String text) {
         ContentValues values = new ContentValues();
-        values.put(NoteKeeperDatabaseContract.NoteInfoEntry.COLUMN_COURSE_ID, courseId);
-        values.put(NoteKeeperDatabaseContract.NoteInfoEntry.COLUMN_NOTE_TITLE, title);
-        values.put(NoteKeeperDatabaseContract.NoteInfoEntry.COLUMN_NOTE_TEXT, text);
+        values.put(NoteInfoEntry.COLUMN_COURSE_ID, courseId);
+        values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, title);
+        values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, text);
 
-        long newRowId = mDb.insert(NoteKeeperDatabaseContract.NoteInfoEntry.TABLE_NAME, null, values);
+        long newRowId = mDb.insert(NoteInfoEntry.TABLE_NAME, null, values);
     }
 
 }
