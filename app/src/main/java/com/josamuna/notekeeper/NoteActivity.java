@@ -2,6 +2,7 @@ package com.josamuna.notekeeper;
 
 import android.annotation.SuppressLint;
 import android.app.LoaderManager;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -26,11 +27,13 @@ import android.content.CursorLoader;
 import android.content.Loader;
 
 import com.josamuna.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
+import com.josamuna.notekeeper.NoteKeeperProviderContract.Courses;
 
 import java.net.URI;
 import java.util.Objects;
 
 import static com.josamuna.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
+import static com.josamuna.notekeeper.NoteKeeperProviderContract.*;
 
 public class NoteActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -38,9 +41,6 @@ public class NoteActivity extends AppCompatActivity
     public static final int LOADER_COURSES = 1;
     private final String TAG = getClass().getSimpleName(); // Or NoteActivity.class
     public static final String NOTE_ID = "com.josamuna.notekeeper.NOTE_ID";
-    public static final String ORIGINAL_NOTE_COURSE_ID = "com.josamuna.notekeeper.ORIGINAL_NOTE_COURSE_ID";
-    public static final String ORIGINAL_NOTE_TITLE = "com.josamuna.notekeeper.ORIGINAL_NOTE_TITLE";
-    public static final String ORIGINAL_NOTE_TEXT = "com.josamuna.notekeeper.ORIGINAL_NOTE_TEXT";
     private static final int ID_NOT_SET = -1;
     private static final int SHOW_CAMERA = 1;
     private NoteInfo mNote = new NoteInfo(DataManager.getInstance().getCourses().get(0), "", "");
@@ -59,6 +59,7 @@ public class NoteActivity extends AppCompatActivity
     private SimpleCursorAdapter mAdapterCourses;
     private boolean mCoursesQueryFinished;
     private boolean mNotesQueryFinished;
+    private Uri mNoteUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -229,19 +230,24 @@ public class NoteActivity extends AppCompatActivity
     @SuppressLint("StaticFieldLeak")
     private void createNewNote() {
         ContentValues values = new ContentValues();
-        values.put(NoteInfoEntry.COLUMN_COURSE_ID, "");
-        values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, "");
-        values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, "");
+        values.put(Notes.COLUMN_COURSE_ID, "");
+        values.put(Notes.COLUMN_NOTE_TITLE, "");
+        values.put(Notes.COLUMN_NOTE_TEXT, "");
 
-        AsyncTask task = new AsyncTask() {
+        mNoteUri = getContentResolver().insert(Notes.CONTENT_URI, values);
 
-            @Override
-            protected Object doInBackground(Object[] objects) {
-                SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
-                mNoteId = (int) db.insert(NoteInfoEntry.TABLE_NAME, null, values);
-                return null;
-            }
-        };
+//        AsyncTask task = new AsyncTask() {
+//
+//            @Override
+//            protected Object doInBackground(Object[] objects) {
+//                SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
+//                mNoteId = (int) db.insert(NoteInfoEntry.TABLE_NAME, null, values);
+//                return null;
+//            }
+//        };
+//
+//        task.execute();
+
 //        DataManager dm = DataManager.getInstance();
 //        mNoteId = dm.createNewNote();
 //        mNote = dm.getNotes().get(mNotePosition);
@@ -274,8 +280,9 @@ public class NoteActivity extends AppCompatActivity
 
             @Override
             protected Object doInBackground(Object[] objects) {
-                SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
-                db.delete(NoteInfoEntry.TABLE_NAME, selection, selectionArgs);
+//                SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
+//                db.delete(NoteInfoEntry.TABLE_NAME, selection, selectionArgs);
+                getContentResolver().delete(mNoteUri, null, null);
                 return null;
             }
         };
@@ -305,28 +312,36 @@ public class NoteActivity extends AppCompatActivity
         Cursor cursor = mAdapterCourses.getCursor();
         cursor.moveToPosition(selectedPosition);
         int courseIdPos = cursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_ID);
-        String courseId = cursor.getString(courseIdPos);
-        return courseId;
+        return cursor.getString(courseIdPos);
     }
 
     @SuppressLint("StaticFieldLeak")
     public void saveNoteToDatabase(String courseId, String noteTitle, String noteText) {
-        String selection = NoteInfoEntry._ID + " = ?";
-        String[] selectionArgs = { String.valueOf(mNoteId) };
-
         ContentValues values = new ContentValues();
         values.put(NoteInfoEntry.COLUMN_COURSE_ID, courseId);
         values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, noteTitle);
         values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, noteText);
-        AsyncTask task = new AsyncTask() {
 
-            @Override
-            protected Object doInBackground(Object[] objects) {
-                SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
-                db.update(NoteInfoEntry.TABLE_NAME, values, selection, selectionArgs);
-                return null;
-            }
-        };
+        getContentResolver().update(mNoteUri, values, null, null);
+//        String selection = NoteInfoEntry._ID + " = ?";
+//        String[] selectionArgs = { String.valueOf(mNoteId) };
+//
+//        ContentValues values = new ContentValues();
+//        values.put(NoteInfoEntry.COLUMN_COURSE_ID, courseId);
+//        values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, noteTitle);
+//        values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, noteText);
+//
+//        AsyncTask task = new AsyncTask() {
+//
+//            @Override
+//            protected Object doInBackground(Object[] objects) {
+//                SQLiteDatabase db = mDbOpenHelper.getWritableDatabase();
+//                db.update(NoteInfoEntry.TABLE_NAME, values, selection, selectionArgs);
+//                return null;
+//            }
+//        };
+//
+//        task.execute();
     }
 
     private void displayNote() {
@@ -414,44 +429,61 @@ public class NoteActivity extends AppCompatActivity
         return loader;
     }
 
-    @SuppressLint("StaticFieldLeak")
     private CursorLoader createLoaderCourses() {
         mCoursesQueryFinished = false;
-        return new CursorLoader(this) {
-            @Override
-            public Cursor loadInBackground() {
-                SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
-                String[] courseColumns = {
-                        CourseInfoEntry.COLUMN_COURSE_TITLE,
-                        CourseInfoEntry.COLUMN_COURSE_ID,
-                        CourseInfoEntry._ID
-                };
-
-                return db.query(CourseInfoEntry.TABLE_NAME, courseColumns,
-                        null, null, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
-            }
+        Uri uri = Courses.CONTENT_URI;
+        String[] courseColumns = {
+                Courses.COLUMN_COURSE_TITLE,
+                Courses.COLUMN_COURSE_ID,
+                Courses._ID
         };
+        return new CursorLoader(this, uri, courseColumns, null, null,
+                Courses.COLUMN_COURSE_TITLE);
+
+//        return new CursorLoader(this) {
+//            @Override
+//            public Cursor loadInBackground() {
+//                SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
+//                String[] courseColumns = {
+//                        CourseInfoEntry.COLUMN_COURSE_TITLE,
+//                        CourseInfoEntry.COLUMN_COURSE_ID,
+//                        CourseInfoEntry._ID
+//                };
+//
+//                return db.query(CourseInfoEntry.TABLE_NAME, courseColumns,
+//                        null, null, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
+//            }
+//        };
     }
 
-    @SuppressLint("StaticFieldLeak")
     private CursorLoader createLoaderNotes() {
-        return new CursorLoader(this) {
-            @Override
-            public Cursor loadInBackground() {
-                SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
-
-                String selection = NoteInfoEntry._ID + " = ?";
-                String[] selectionArgs = { Integer.toString(mNoteId) };
-
-                String[] noteColumns = {
-                        NoteInfoEntry.COLUMN_COURSE_ID,
-                        NoteInfoEntry.COLUMN_NOTE_TITLE,
-                        NoteInfoEntry.COLUMN_NOTE_TEXT
-                };
-                return db.query(NoteInfoEntry.TABLE_NAME, noteColumns, selection,
-                        selectionArgs, null, null, null);
-            }
+        mNotesQueryFinished = false;
+        String[] noteColumns = {
+                Notes.COLUMN_COURSE_ID,
+                Notes.COLUMN_NOTE_TITLE,
+                Notes.COLUMN_NOTE_TEXT
         };
+
+        mNoteUri = ContentUris.withAppendedId(Notes.CONTENT_URI, mNoteId);
+        return new CursorLoader(this, mNoteUri, noteColumns, null, null, null);
+
+//        return new CursorLoader(this) {
+//            @Override
+//            public Cursor loadInBackground() {
+//                SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
+//
+//                String selection = NoteInfoEntry._ID + " = ?";
+//                String[] selectionArgs = { Integer.toString(mNoteId) };
+//
+//                String[] noteColumns = {
+//                        NoteInfoEntry.COLUMN_COURSE_ID,
+//                        NoteInfoEntry.COLUMN_NOTE_TITLE,
+//                        NoteInfoEntry.COLUMN_NOTE_TEXT
+//                };
+//                return db.query(NoteInfoEntry.TABLE_NAME, noteColumns, selection,
+//                        selectionArgs, null, null, null);
+//            }
+//        };
     }
 
     @Override
