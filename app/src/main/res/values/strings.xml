@@ -47,4 +47,7 @@
     <string name="pref_default_email_address">yourname@yourhost.com</string>
     <string name="pref_favorite_social">Favorite social network</string>
     <string name="pref_default_favorite_social">https://facebook.com</string>
+    <string name="set_reminder">Set Reminder</string>
+    <string name="channel_name">channel1</string>
+    <string name="channel_description">My NoteKeeper Notification1</string>
 </resources>

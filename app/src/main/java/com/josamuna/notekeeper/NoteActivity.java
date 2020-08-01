@@ -4,7 +4,9 @@ import android.annotation.SuppressLint;
 import android.app.LoaderManager;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -23,8 +25,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
-import android.content.CursorLoader;
-import android.content.Loader;
 
 import com.josamuna.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 import com.josamuna.notekeeper.NoteKeeperProviderContract.Courses;
@@ -33,7 +33,7 @@ import java.net.URI;
 import java.util.Objects;
 
 import static com.josamuna.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
-import static com.josamuna.notekeeper.NoteKeeperProviderContract.*;
+import static com.josamuna.notekeeper.NoteKeeperProviderContract.Notes;
 
 public class NoteActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -183,9 +183,18 @@ public class NoteActivity extends AppCompatActivity
             finish();
         } else if (id == R.id.action_next) {
             moveNext();
+        } else if (id == R.id.action_set_reminder) {
+            showReminderNotification();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showReminderNotification() {
+        String noteTitle = mTextNoteTitle.getText().toString();
+        String noteText = mTextNoteText.getText().toString();
+        int noteId = (int) ContentUris.parseId(mNoteUri);
+        NoteReminderNotification.notify(this, noteTitle, noteText, noteId);
     }
 
     @Override
