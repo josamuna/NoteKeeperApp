@@ -128,8 +128,8 @@ public class NoteReminderNotification extends Application {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = context.getResources().getString(R.string.channel_name);//getResources().getString(R.string.channel_name);
-            String description = context.getResources().getString(R.string.channel_description);//getString(R.string.channel_description);
+            CharSequence name = context.getResources().getString(R.string.channel_name);
+            String description = context.getResources().getString(R.string.channel_description);
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
             channel.setDescription(description);
@@ -139,7 +139,6 @@ public class NoteReminderNotification extends Application {
             notificationManager.createNotificationChannel(channel);
         }
     }
-
 
     @TargetApi(Build.VERSION_CODES.ECLAIR)
     private static void notify(final Context context, final Notification notification) {

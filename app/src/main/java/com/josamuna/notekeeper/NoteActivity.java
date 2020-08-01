@@ -30,6 +30,7 @@ import com.josamuna.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 import com.josamuna.notekeeper.NoteKeeperProviderContract.Courses;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Objects;
 
 import static com.josamuna.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
@@ -43,7 +44,8 @@ public class NoteActivity extends AppCompatActivity
     public static final String NOTE_ID = "com.josamuna.notekeeper.NOTE_ID";
     private static final int ID_NOT_SET = -1;
     private static final int SHOW_CAMERA = 1;
-    private NoteInfo mNote = new NoteInfo(DataManager.getInstance().getCourses().get(0), "", "");
+//    private NoteInfo mNote = new NoteInfo(DataManager.getInstance().getCourses().get(0), "", "");
+    private NoteInfo mNote = new NoteInfo(new CourseInfo("0","", new ArrayList<ModuleInfo>()), "", "");
     private boolean mIsNewNote;
     private Spinner mSpinnerCourses;
     private EditText mTextNoteTitle;
