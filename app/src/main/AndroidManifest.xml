@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:dist="http://schemas.android.com/apk/distribution"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.josamuna.notekeeper">
 
     <dist:module dist:instant="true" />
-
+    <!-- Attribute android:name=".NoteReminderNotification" Allow to register Notification to be visible-->
     <application
+        android:name=".NoteReminderNotification"
         android:allowBackup="true"
         android:fullBackupContent="@string/backup_file"
         android:icon="@mipmap/ic_launcher"
@@ -17,7 +19,8 @@
             android:name=".NoteKeeperProvider"
             android:authorities="com.josamuna.notekeeper.provider"
             android:enabled="true"
-            android:exported="true"></provider>
+            android:exported="true"
+            tools:ignore="ExportedContentProvider" />
 
         <activity
             android:name=".SettingsActivity"

@@ -19,4 +19,7 @@
     <item
         android:id="@+id/action_show_camera"
         android:title="@string/show_camera" />
+    <item
+        android:id="@+id/action_set_reminder"
+        android:title="@string/set_reminder" />
 </menu>
