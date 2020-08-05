@@ -1,4 +1,4 @@
-## NoteKeeper project for Andela Trainning 2020
+## NoteKeeper project for Andela Training 2020
 
 # This project is made from the scratch and covert many Modules, like : 
 
