@@ -1,6 +1,6 @@
 ## NoteKeeper project for Andela Trainning 2020
 
-# This project is made from the scratch and covert three Modules 
+# This project is made from the scratch and covert many Modules, like : 
 
 - [x] Understanding Android Application Basics
 - [x] Working with Android Tools and Testing
