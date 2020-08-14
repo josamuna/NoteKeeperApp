@@ -9,6 +9,9 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -89,8 +92,16 @@ public class MainActivity extends AppCompatActivity
 //        loadNotes();
 //        getSupportLoaderManager().restartLoader(LOADER_NOTES, null, this);
         getLoaderManager().restartLoader(LOADER_NOTES, null, this);
-
         updateNavHeader();
+        openDrawer();
+    }
+
+    private void openDrawer() {
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(() -> { // Use Runnable Interface with Functional Interface using Lambda Expression
+            DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
+            drawerLayout.openDrawer(GravityCompat.START);
+        }, 1000);
     }
 
     private void loadNotes() {
@@ -165,11 +176,22 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
-           return true;
+        switch(id) {
+            case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
+            case R.id.action_backup_notes:
+                backupNotes();
+                return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void backupNotes() {
+//        NoteBackup.doBackup(MainActivity.this, NoteBackup.ALL_COURSES); // Avoid to call doBackup() method directly, we would use Service instead of that.
+        Intent intent = new Intent(this, NoteBackupService.class);
+        intent.putExtra(NoteBackupService.EXTRA_COURSE_ID, NoteBackup.ALL_COURSES);
+        startService(intent);
     }
 
     @Override
