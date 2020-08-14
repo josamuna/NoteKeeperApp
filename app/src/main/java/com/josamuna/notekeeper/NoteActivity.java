@@ -13,11 +13,14 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 
@@ -26,6 +29,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.josamuna.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 import com.josamuna.notekeeper.NoteKeeperProviderContract.Courses;
 
@@ -65,6 +69,8 @@ public class NoteActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note);
+
+        enableStrictMode();
 
         // Get reference to database connection
         mDbOpenHelper = new NoteKeeperOpenHelper(this);
@@ -108,6 +114,16 @@ public class NoteActivity extends AppCompatActivity
         }
 
         Log.d(TAG, "onCreate");
+    }
+
+    private void enableStrictMode() {
+        if (BuildConfig.DEBUG) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .detectAll()
+                    .penaltyLog()
+                    .build();
+            StrictMode.setThreadPolicy(policy);
+        }
     }
 
     private void loadCourseData() {
@@ -238,12 +254,53 @@ public class NoteActivity extends AppCompatActivity
 
     @SuppressLint("StaticFieldLeak")
     private void createNewNote() {
+        AsyncTask<ContentValues, Integer, Uri> task = new AsyncTask<ContentValues, Integer, Uri>() {
+            private ProgressBar mProgressBar;
+
+            @Override
+            protected Uri doInBackground(ContentValues... contentValues) {
+                Log.d(TAG, "doInBackground - Thread : " + Thread.currentThread().getId());
+                ContentValues insertValues = contentValues[0];
+                Uri rowUri = getContentResolver().insert(Notes.CONTENT_URI, insertValues);
+                simulateLongRunningWork(); // Simulate slow database work
+                publishProgress(2);
+
+                simulateLongRunningWork(); // Simulate slow work with data
+                publishProgress(3);
+
+                return rowUri;
+            }
+
+            @Override
+            protected void onProgressUpdate(Integer... values) {
+                int progressValue = values[0];
+                mProgressBar.setProgress(progressValue);
+            }
+
+            @Override
+            protected void onPreExecute() {
+                mProgressBar = findViewById(R.id.progress_bar);
+                mProgressBar.setVisibility(View.VISIBLE);
+                mProgressBar.setProgress(1);
+            }
+
+            @Override
+            protected void onPostExecute(Uri uri) {
+                Log.d(TAG, "onPostExecute - Thread : " + Thread.currentThread().getId());
+                mNoteUri = uri;
+                displaySnackbar(mNoteUri.toString());
+                mProgressBar.setVisibility(View.GONE);
+            }
+        };
+
         ContentValues values = new ContentValues();
         values.put(Notes.COLUMN_COURSE_ID, "");
         values.put(Notes.COLUMN_NOTE_TITLE, "");
         values.put(Notes.COLUMN_NOTE_TEXT, "");
 
-        mNoteUri = getContentResolver().insert(Notes.CONTENT_URI, values);
+        Log.d(TAG, "Call to execute - thread : " + Thread.currentThread().getId());
+        task.execute(values);
+//        mNoteUri = getContentResolver().insert(Notes.CONTENT_URI, values);
 
 //        AsyncTask task = new AsyncTask() {
 //
@@ -260,6 +317,17 @@ public class NoteActivity extends AppCompatActivity
 //        DataManager dm = DataManager.getInstance();
 //        mNoteId = dm.createNewNote();
 //        mNote = dm.getNotes().get(mNotePosition);
+    }
+
+    private void simulateLongRunningWork() {
+        try {
+            Thread.sleep(2000);
+        } catch (Exception ignored) {}
+    }
+
+    private void displaySnackbar(String message) {
+        View view = findViewById(R.id.spinner_courses);
+        Snackbar.make(view, message, Snackbar.LENGTH_LONG).show();
     }
 
     @Override

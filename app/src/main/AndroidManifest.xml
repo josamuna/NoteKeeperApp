@@ -5,7 +5,7 @@
     package="com.josamuna.notekeeper">
 
     <dist:module dist:instant="true" />
-    <!-- Attribute android:name=".NoteReminderNotification" Allow to register Notification to be visible-->
+
     <application
         android:name=".NoteReminderNotification"
         android:allowBackup="true"
@@ -15,6 +15,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <service
+            android:name=".NoteUploaderJobService"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service
+            android:name=".NoteBackupService"
+            android:exported="false" />
+
         <provider
             android:name=".NoteKeeperProvider"
             android:authorities="com.josamuna.notekeeper.provider"
