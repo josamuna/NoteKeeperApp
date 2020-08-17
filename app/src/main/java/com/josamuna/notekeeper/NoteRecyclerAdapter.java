@@ -11,9 +11,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.List;
-
-import static com.josamuna.notekeeper.NoteKeeperDatabaseContract.*;
+import static com.josamuna.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
+import static com.josamuna.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 
 public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapter.ViewHolder> {
 

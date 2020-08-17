@@ -1,10 +1,8 @@
 package com.josamuna.notekeeper;
 
-import android.app.job.JobParameters;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.josamuna.notekeeper.NoteKeeperProviderContract.Notes;

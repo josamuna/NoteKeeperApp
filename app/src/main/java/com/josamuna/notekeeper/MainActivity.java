@@ -2,6 +2,9 @@ package com.josamuna.notekeeper;
 
 import android.annotation.SuppressLint;
 import android.app.LoaderManager;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -11,7 +14,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.Gravity;
+import android.os.PersistableBundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,17 +34,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
-import com.josamuna.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
 import com.josamuna.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 
 import java.util.List;
 
-import static com.josamuna.notekeeper.NoteKeeperProviderContract.*;
+import static com.josamuna.notekeeper.NoteKeeperProviderContract.Notes;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         LoaderManager.LoaderCallbacks<Cursor> {
 
+    public static final int NOTE_UPLOADER_JOB_ID = 1;
     private NoteRecyclerAdapter mNoteRecyclerAdapter;
     private RecyclerView mRecyclerItems;
     private LinearLayoutManager mNoteLayoutManager;
@@ -104,6 +107,7 @@ public class MainActivity extends AppCompatActivity
         }, 1000);
     }
 
+    @SuppressWarnings("unused")
     private void loadNotes() {
         SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
         final String[] noteColumns = {
@@ -183,8 +187,25 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_backup_notes:
                 backupNotes();
                 return true;
+            case R.id.action_upload_notes:
+                scheduleNoteUpload();
+                return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void scheduleNoteUpload() {
+        PersistableBundle extras = new PersistableBundle();
+        extras.putString(NoteUploaderJobService.EXTRA_DATA_URI, Notes.CONTENT_URI.toString());
+
+        ComponentName componentName = new ComponentName(this, NoteUploaderJobService.class);
+        JobInfo jobInfo = new JobInfo.Builder(NOTE_UPLOADER_JOB_ID, componentName)
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY) // Disabled that line to test without Network
+                .setExtras(extras)
+                .build();
+        
+        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+        jobScheduler.schedule(jobInfo);
     }
 
     private void backupNotes() {

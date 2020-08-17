@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.josamuna.notekeeper.NoteKeeperDatabaseContract.*;
+import static com.josamuna.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
+import static com.josamuna.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 
 /**
  * Created by Jim.

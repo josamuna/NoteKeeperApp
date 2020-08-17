@@ -3,6 +3,8 @@ package com.josamuna.notekeeper;
 import android.app.IntentService;
 import android.content.Intent;
 
+import java.util.Objects;
+
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -20,7 +22,7 @@ public class NoteBackupService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
             String backupCourseId = intent.getStringExtra(EXTRA_COURSE_ID);
-            NoteBackup.doBackup(this, backupCourseId);
+            NoteBackup.doBackup(this, Objects.requireNonNull(backupCourseId));
         }
     }
 }

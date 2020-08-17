@@ -51,4 +51,5 @@
     <string name="channel_name">channel1</string>
     <string name="channel_description">My NoteKeeper Notification1</string>
     <string name="action_backup_notes">Backup notes</string>
+    <string name="action_upload_notes">Upload Notes</string>
 </resources>
