@@ -7,7 +7,7 @@
 - [x] Enhancing the Android Application Experience
 - [x] Managing Android App Data with SQLite
 - [x] Exposing Data and Information Outside Your Android App
-- [ ] Leveraging the Power of the Android Platform
+- [x] Leveraging the Power of the Android Platform
 - [ ] Broadening Android App Appeal and Reach
 
 This project is private as well because it can only be open while Andela Trainning
