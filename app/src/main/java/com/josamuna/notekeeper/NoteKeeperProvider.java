@@ -9,7 +9,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.BaseColumns;
-import android.provider.ContactsContract;
 
 import com.josamuna.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
 import com.josamuna.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;

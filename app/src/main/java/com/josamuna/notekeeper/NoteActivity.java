@@ -1,7 +1,9 @@
 package com.josamuna.notekeeper;
 
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
 import android.app.LoaderManager;
+import android.app.PendingIntent;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.CursorLoader;
@@ -14,6 +16,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
@@ -126,6 +129,7 @@ public class NoteActivity extends AppCompatActivity
         }
     }
 
+    @SuppressWarnings("unused")
     private void loadCourseData() {
         SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
         String[] courseColumns = {
@@ -147,6 +151,7 @@ public class NoteActivity extends AppCompatActivity
         super.onDestroy();
     }
 
+    @SuppressWarnings("unused")
     private void loadNoteData() {
         SQLiteDatabase db = mDbOpenHelper.getReadableDatabase();
 
@@ -210,7 +215,22 @@ public class NoteActivity extends AppCompatActivity
         String noteTitle = mTextNoteTitle.getText().toString();
         String noteText = mTextNoteText.getText().toString();
         int noteId = (int) ContentUris.parseId(mNoteUri);
-        NoteReminderNotification.notify(this, noteTitle, noteText, noteId);
+//        NoteReminderNotification.notify(this, noteTitle, noteText, noteId);
+
+        Intent intent = new Intent(this, NoteReminderReceiver.class);
+        intent.putExtra(NoteReminderReceiver.EXTRA_NOTE_TITLE, noteTitle);
+        intent.putExtra(NoteReminderReceiver.EXTRA_NOTE_TEXT, noteText);
+        intent.putExtra(NoteReminderReceiver.EXTRA_NOTE_ID, noteId);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+        long currentTimeMilliseconds = SystemClock.elapsedRealtime();
+        long ONE_OUR = 60 * 60 *1000;
+        long TEN_SECOND = 10 * 1000;
+
+        long alarmTime = currentTimeMilliseconds + TEN_SECOND;
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME, alarmTime, pendingIntent);
     }
 
     @Override
@@ -350,8 +370,8 @@ public class NoteActivity extends AppCompatActivity
     }
     @SuppressLint("StaticFieldLeak")
     private void deleteNoteFromDatabase() {
-        final String selection = NoteInfoEntry._ID + " = ?";
-        final String[] selectionArgs = { String.valueOf(mNoteId) };
+//        final String selection = NoteInfoEntry._ID + " = ?";
+//        final String[] selectionArgs = { String.valueOf(mNoteId) };
 
         AsyncTask task = new AsyncTask() {
 
@@ -425,10 +445,14 @@ public class NoteActivity extends AppCompatActivity
         String courseId = mNoteCursor.getString(mCourseIdPos);
         String noteTitle = mNoteCursor.getString(mNoteTitlePos);
         String noteText = mNoteCursor.getString(mNoteTextPos);
+
         int CourseIndex = getIndexOfCourseId(courseId);
+
         mSpinnerCourses.setSelection(CourseIndex);
         mTextNoteTitle.setText(noteTitle);
         mTextNoteText.setText(noteText);
+
+        CourseEventBroadcastHelper.sendEventBroadcast(this, courseId, "Editing Note");
     }
 
     private int getIndexOfCourseId(String courseId) {
